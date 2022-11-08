@@ -1,0 +1,13 @@
+###########################################################################
+# list of relative paths to `rm -rf` before shipping external copies of code
+###########################################################################
+# comments are okay: they'll be stripped
+# blanks at end of line will be stripped (no way to specify a path that ends with a blank)
+# empty lines will be stripped
+###########################################################################
+
+pytorch/.gitignore
+pytorch/.dockerignore
+
+pytorch/ci*.yml
+pytorch/wandb_cert.key

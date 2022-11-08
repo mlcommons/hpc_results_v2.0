@@ -1,0 +1,47 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:22.08-py3
+
+
+%post
+   pip install -U pip
+   # NOTE: installing apex caused my computer to crash, it should already be installed in the base container anyway
+   # cd /opt
+   #git clone https://github.com/NVIDIA/apex.git && \
+   #   pip uninstall -y apex && cd apex && \
+   #   CFLAGS="-g0" pip install --no-deps --no-cache-dir --disable-pip-version-check --global-option="--cpp_ext" --global-option="--cuda_ext" --global-option="--bnp" --global-option="--xentropy" --global-option="--deprecated_fused_adam" --global-option="--deprecated_fused_lamb" --global-option="--distributed_lamb" --global-option="--transducer" --global-option="--distributed_adam" --global-option="--fmha" --global-option="--fast_bottleneck" .
+
+   #pip install --extra-index-url https://developer.download.nvidia.com/compute/redist/nightly --upgrade nvidia-dali-nightly-cuda110
+
+   pip install h5py
+   pip install mpi4py --no-binary :all:
+
+   # logging install
+   #pip install "git+https://github.com/mlcommons/logging.git@hpc-1.0.0-rc1" --no-binary :all:
+   
+   # `io_helpers` is an extension in deepcam
+   # easiest sol: clone the whole directory and then install
+   # NOTE: this will require
+   git clone -b hai-submission https://daniel.coquelin:7DAoDcv9R9yNDtBFjxkB@gitlab.hzdr.de/hemlholtz-ai-mlperf/optimized-hpc.git
+   cp -r optimized-hpc/HelmholtzAI/benchmarks/implementations/deepcam/pytorch/io_helpers/ /opt/io_helpers
+   cd /opt/io_helpers && python setup.py install
+
+   mkdir -p /opt/pytorch/kernel_cache
+   export PYTORCH_KERNEL_CACHE_PATH="/opt/pytorch/kernel_cache"
+
+   pip install "git+https://github.com/mlcommons/logging.git@hpc-1.0.0-rc1"
+
+   cd /opt
+   git clone https://github.com/helmholtz-analytics/heat.git
+   cd /opt/heat
+   pip install -e . --no-deps
+   #pip install -e heat
+   #pip install -e mlperf-logging
+
+%environment
+   
+%runscript
+
+%labels
+   Author daniel.coquelin@gmail.com
+
+

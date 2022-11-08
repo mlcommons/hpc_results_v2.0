@@ -1,0 +1,24 @@
+#!/bin/bash
+#SBATCH --account mlperf
+#SBATCH --partition luna
+#SBATCH --job-name mlperf-oc20:optimized
+#SBATCH --time=04:00:00
+#SBATCH --network sharp 
+#SBATCH --exclusive
+#SBATCH --overcommit
+
+export SHARP_COLL_LOG_LEVEL=3
+export OMPI_MCA_coll_hcoll_enable=0
+export NCCL_COLLNET_ENABLE=1
+export UCX_TLS=dc_x,cuda_copy,cuda_ipc
+export UCX_NET_DEVICES=mlx5_0:1
+export UCX_RNDV_THRESH=16384
+
+DATA="/lustre/fsw/mlperf/mlperf-hpc/mfutrega/data"
+RESULTS="/lustre/fsw/mlperf/mlperf-hpc/mfutrega/results"
+CONT="gitlab-master.nvidia.com/mfutrega/open-catalyst:latest"
+MOUNTS="$DATA:/data,$RESULTS:/results"
+
+CMD="./bind.sh --cluster=selene --ib=single --cpu=exclusive,nosmt python main.py --batch_size ${BATCH_SIZE} --eval_batch_size ${EVAL_BATCH_SIZE} --lr_initial ${LR_INITIAL} --warmup_steps ${WARMUP_STEPS} --lr_gamma ${LR_GAMMA} --warmup_factor ${WARMUP_FACTOR} --lr_milestones ${LR_MILESTONES} --instances ${NUM_INSTANCES}"
+
+srun --container-image="${CONT}" --container-mounts="${MOUNTS}" bash -c "${CMD}"

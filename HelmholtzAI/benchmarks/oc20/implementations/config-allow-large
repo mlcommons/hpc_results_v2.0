@@ -1,0 +1,18 @@
+###########################################################################
+# list of relative paths to LARGE-config config_*.sh and README_*.md files to
+# allow in externally-shipped copies of the code (but not in early access to OEMs)
+###########################################################################
+# comments are okay: they'll be stripped
+# blanks at end of line will be stripped (no way to specify a path that ends with a blank)
+# empty lines will be stripped
+###########################################################################
+
+pytorch/configs/config_DGXA100_common.sh
+pytorch/configs/config_DGXA100_8x8x16.sh
+pytorch/configs/config_DGXA100_64x8x16.sh
+pytorch/configs/config_DGXA100_64x8x8x16.sh
+
+pytorch/README_dgxa100_64x8x4_ngc22.08_pytorch.md
+pytorch/README_dgxa100_64x8x8x16_ngc22.08_pytorch.md
+pytorch/README_dgxa100_8x8x16_ngc22.08_pytorch.md
+pytorch/README.md

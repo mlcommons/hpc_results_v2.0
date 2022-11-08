@@ -1,0 +1,70 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:22.08-py3
+Stage: spython-base
+
+%files
+    ./requirements.txt .
+    . /workspace/oc20
+
+%post
+    # set env variables to install with cuda
+    export FORCE_CUDA=1
+    export TORCH_CUDA_ARCH_LIST="7.0 7.5 8.0 8.6+PTX"
+    export CPATH=/usr/local/cuda/include
+    export PATH=/usr/local/cuda/bin:$PATH
+
+    # install libpmi2-pmix
+    export DEBIAN_FRONTEND=noninteractive 
+    export TZ=Etc/UTC
+    apt-get update
+    apt-get install -y --no-install-recommends libpmi2-pmix
+    rm -rf /var/lib/apt/lists/*
+
+    # are these really no longer necessary?
+    # # install torch-scatter
+    # pip install --no-cache-dir torch-scatter==2.0.9
+
+    # # install pytorch_sparse
+    # git clone --branch 0.6.14 https://github.com/rusty1s/pytorch_sparse.git
+    # cd pytorch_sparse
+    # pip install .
+    # cd ..
+
+    # install torch-geometric
+    pip install --no-cache-dir torch-geometric==1.7.2
+
+    # install the requirements
+    pip install --disable-pip-version-check -r requirements.txt
+
+    # install additional requirements with conda
+    /opt/conda/bin/conda install -y -c rapidsai-nightly -c conda-forge --no-deps\
+    libcugraphops=22.08.00a220909=cuda11_g187469b_27\
+    librmm=22.08.00a220909=cuda11_gf6bf0471_62\
+    spdlog=1.8.5=h4bd325d_1 &&\
+    conda clean -ya
+
+    # install mlperf-logging
+    git clone -b hpc-0.5.0 https://github.com/mlperf-hpc/logging.git mlperf-logging
+    pip install -e mlperf-logging
+
+    # Build cugraph-ops-binding
+    rm -rf /opt/cugraph-ops-binding/build &&\
+    mkdir -p /opt/cugraph-ops-binding/build &&\
+    cd /opt/cugraph-ops-binding/build &&\
+    cmake /workspace/oc20/cugraph-ops-binding/ &&\
+    make -j2
+    export PYTHONPATH="${PYTHONPATH}:/opt/cugraph-ops-binding/build"
+
+    cd /workspace/oc20
+    cp pyg_patch/__init__.py /opt/conda/lib/python3.8/site-packages/torch_geometric
+    cp pyg_patch/data/* /opt/conda/lib/python3.8/site-packages/torch_geometric/data
+
+    # install OC20
+    pip install -e .
+
+    # build index mul from /workspace/oc20/source/
+    mkdir source/build && cd source/build  && cmake .. && make -j
+
+%environment
+    export PYTHONPATH="${PYTHONPATH}:/opt/cugraph-ops-binding/build"
+    export OMP_NUM_THREADS=2

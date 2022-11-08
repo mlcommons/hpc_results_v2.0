@@ -1,0 +1,28 @@
+#!/bin/bash
+#SBATCH --job-name mlperf-hpc:cosmoflow_ref
+set -euxo pipefail
+
+
+# Vars without defaults
+: "${DGXSYSTEM:?DGXSYSTEM not set}"
+: "${CONT:?CONT not set}"
+
+: "${DATADIR:=/lustre/fsw/mlperf/mlperf-hpc/tkurth/cosmoflow_v0.7/data/cosmoUniverse_2019_05_4parE_tf_v2_numpy}"
+: "${LOGDIR:=./results}"
+: "${STAGING_DIR:=/tmp/}"
+
+# Other vars
+readonly _seed_override=${SEED:-}
+readonly _cont_name=mlperf-hpc-cosmoflow
+_cont_mounts="${DATADIR}:/data:ro,${LOGDIR}:/results,${STAGING_DIR}:/staging_area"
+
+
+# Setup directories
+( umask 0002; mkdir -p "${LOGDIR}" )
+srun --ntasks="${SLURM_JOB_NUM_NODES}" mkdir -p "${LOGDIR}"
+
+# Setup container
+srun --ntasks="${SLURM_JOB_NUM_NODES}" --container-image="${CONT}" --container-name="${_cont_name}" true
+srun --kill-on-bad-exit=0 --mpi=pmix --ntasks="$(( SLURM_JOB_NUM_NODES * DGXNGPU ))" --ntasks-per-node="${DGXNGPU}" \
+    --container-name="${_cont_name}" --container-mounts="${_cont_mounts}" \
+	        bash ./checks/data_staging.sh "$@"

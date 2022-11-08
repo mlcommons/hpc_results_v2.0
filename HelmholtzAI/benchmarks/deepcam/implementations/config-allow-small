@@ -1,0 +1,12 @@
+###########################################################################
+# list of relative paths to small-config config_*.sh and README_*.md files to
+# allow in externally-shipped copies of the code
+###########################################################################
+# comments are okay: they'll be stripped
+# blanks at end of line will be stripped (no way to specify a path that ends with a blank)
+# empty lines will be stripped
+###########################################################################
+
+pytorch/configs/config_DGXA100_common.sh
+pytorch/configs/config_DGXA100_2x8x8.sh 
+
