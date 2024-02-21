@@ -1,5 +1,5 @@
 git+https://github.com/mlcommons/logging.git@2.0.0
 ase==3.22.1
 numpy==1.22.4
-pymatgen==2022.1.9
+pymatgen==2024.2.20
 mpi4py==3.1.3
